@@ -1266,23 +1266,40 @@ onmessage = (e) => {
             }
         }
 
-        // Interactive Demo Logic (Slide 29)
+       // Interactive Demo Logic (Slide 29)
         const blockBtn = document.getElementById('btn-block-main');
         const statusText = document.getElementById('worker-status');
+        const demoSpinner = document.getElementById('demo-spinner');
 
-        if (blockBtn) {
+        // 1. Switch to JS-driven animation
+        // (CSS animations often run on a separate thread and won't freeze, defeating the demo)
+        if (demoSpinner) {
+            demoSpinner.classList.remove('spinner'); // Remove CSS animation
+            let deg = 0;
+            function animate() {
+                deg = (deg + 5) % 360;
+                demoSpinner.style.transform = `rotate(${deg}deg)`;
+                requestAnimationFrame(animate);
+            }
+            requestAnimationFrame(animate);
+        }
+
+        // 2. Blocking Logic
+        if (blockBtn && statusText) {
             blockBtn.addEventListener('click', () => {
+                // Update UI text immediately
                 statusText.textContent = "Status: MAIN THREAD BLOCKED! (Animation frozen)";
-                statusText.classList.add('text-red-600', 'font-bold');
+                statusText.className = "mt-4 font-mono text-sm h-6 text-red-600 font-bold";
 
-                // Force a slight delay so the UI can update the status text before freezing
+                // Defer blocking slightly to allow the DOM to repaint the new status text
                 setTimeout(() => {
                     const start = Date.now();
-                    while (Date.now() - start < 3000) {
-                        // INTENTIONALLY BLOCKING THE MAIN THREAD FOR 3 SECONDS
-                    }
+                     // Busy wait for 3 seconds to simulate heavy JS
+                    while (Date.now() - start < 3000) {}
+
+                    // Restore UI
                     statusText.textContent = "Status: Unblocked.";
-                    statusText.classList.remove('text-red-600', 'font-bold');
+                    statusText.className = "mt-4 font-mono text-sm h-6 text-gray-600";
                 }, 50);
             });
         }
@@ -1305,3 +1322,4 @@ onmessage = (e) => {
     </script>
 </body>
 </html>
+
